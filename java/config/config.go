@@ -100,6 +100,8 @@ func init() {
 		"-JXmx4096M",
 		"-JDcom.android.tools.r8.emitRecordAnnotationsInDex",
 		"-JDcom.android.tools.r8.emitPermittedSubclassesAnnotationsInDex",
+		// Disable this optimization as it can impact weak reference semantics. See b/233432839.
+		"-JDcom.android.tools.r8.disableEnqueuerDeferredTracing=true",
 	}, dexerJavaVmFlagsList...))
 
 	exportedVars.ExportStringListStaticVariable("CommonJdkFlags", []string{
