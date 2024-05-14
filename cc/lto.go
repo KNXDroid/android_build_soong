@@ -57,6 +57,7 @@ type LTOProperties struct {
 
 	// Use --lto-O0 flag.
 	Lto_O0 *bool
+	Lto_Instr100 *bool
 }
 
 type lto struct {
@@ -165,6 +166,9 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 
 		// Reduce the inlining threshold for a better balance of binary size and
 		// performance.
+		if !Bool(lto.Properties.Lto_Instr100) {
+				ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
+		}
 
 		if !ctx.Config().IsEnvFalse("THINLTO_USE_MLGO") {
 			// Register allocation MLGO flags for ARM64.
@@ -178,7 +182,6 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 				ltoLdFlags = append(ltoLdFlags, "-Wl,--thinlto-emit-index-files")
 			}
 		}
-		ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
 
 		flags.Local.CFlags = append(flags.Local.CFlags, ltoCFlags...)
 		flags.Local.AsFlags = append(flags.Local.AsFlags, ltoCFlags...)
