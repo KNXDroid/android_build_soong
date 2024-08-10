@@ -452,7 +452,7 @@ func init() {
 		case "debug_level_g":
 			flags = append(flags, "-g")
 		default:
-			flags = append(flags, "-g")
+			flags = append(flags, "-g0")
 		}
 
 		return strings.Join(flags, " ")
