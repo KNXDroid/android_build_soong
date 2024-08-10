@@ -133,13 +133,6 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 
 		// Reduce the inlining threshold for a better balance of binary size and
 		// performance.
-		if !ctx.Darwin() {
-			if ctx.isAfdoCompile(ctx) {
-				ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
-			} else {
-				ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=5")
-			}
-		}
 
 		if !ctx.Config().IsEnvFalse("THINLTO_USE_MLGO") {
 			// Register allocation MLGO flags for ARM64.
@@ -152,7 +145,33 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 				ltoLdFlags = append(ltoLdFlags, "-Wl,--thinlto-emit-index-files")
 			}
 		}
+		ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
 
+		//Polly + Polly DCE
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-ast-use-context")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-invariant-load-hoisting")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-run-inliner")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-vectorizer=stripmine")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-run-dce")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-loopfusion-greedy=1")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-reschedule=1")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-postopts=1")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-omp-backend=LLVM")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-scheduling=dynamic")
+		flags.Local.LdFlags = append(flags.Local.LdFlags,
+					     "-Wl,-mllvm,-polly-scheduling-chunksize=1")
 		flags.Local.CFlags = append(flags.Local.CFlags, ltoCFlags...)
 		flags.Local.AsFlags = append(flags.Local.AsFlags, ltoCFlags...)
 		flags.Local.LdFlags = append(flags.Local.LdFlags, ltoCFlags...)
