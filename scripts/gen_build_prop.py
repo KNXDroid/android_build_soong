@@ -346,12 +346,11 @@ def append_additional_system_props(args):
     # Target is secure in user builds.
     props.append("ro.secure=1")
     props.append("security.perf_harden=1")
-
+    enable_target_debugging = False
+    enable_dalvik_lock_contention_logging = False
     if config["BuildVariant"] == "user":
       # Disable debugging in plain user builds.
       props.append("ro.adb.secure=1")
-      enable_target_debugging = False
-      enable_dalvik_lock_contention_logging = False
     else:
       # Disable debugging in userdebug builds if PRODUCT_NOT_DEBUGGABLE_IN_USERDEBUG
       # is set.
