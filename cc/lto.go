@@ -105,6 +105,34 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 	if ctx.isCfi() || ctx.isFuzzer() {
 		return flags
 	}
+	flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inline-threshold=3240")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inlinehint-threshold=1030")
+
+	//Polly + Polly DCE
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-ast-use-context")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-invariant-load-hoisting")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-run-inliner")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-vectorizer=stripmine")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-run-dce")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-loopfusion-greedy=1")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-reschedule=1")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-postopts=1")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-omp-backend=LLVM")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-scheduling=dynamic")
+	flags.Local.LdFlags = append(flags.Local.LdFlags,
+				     "-Wl,-mllvm,-polly-scheduling-chunksize=1")
 	if lto.Properties.LtoEnabled {
 		ltoCFlags := []string{"-flto=thin", "-fsplit-lto-unit"}
 		var ltoLdFlags []string
@@ -138,6 +166,7 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 			// Register allocation MLGO flags for ARM64.
 			if ctx.Arch().ArchType == android.Arm64 && !ctx.optimizeForSize() {
 				ltoLdFlags = append(ltoLdFlags, "-Wl,-mllvm,-regalloc-enable-advisor=release")
+				ltoLdFlags = append(ltoLdFlags, "-Wl,-mllvm,-enable-ml-inliner=release")
 			}
 			// Flags for training MLGO model.
 			if ctx.Config().IsEnvTrue("THINLTO_EMIT_INDEXES_AND_IMPORTS") {
@@ -147,31 +176,6 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 		}
 		ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
 
-		//Polly + Polly DCE
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-ast-use-context")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-invariant-load-hoisting")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-run-inliner")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-vectorizer=stripmine")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-run-dce")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-loopfusion-greedy=1")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-reschedule=1")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-postopts=1")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-omp-backend=LLVM")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-scheduling=dynamic")
-		flags.Local.LdFlags = append(flags.Local.LdFlags,
-					     "-Wl,-mllvm,-polly-scheduling-chunksize=1")
 		flags.Local.CFlags = append(flags.Local.CFlags, ltoCFlags...)
 		flags.Local.AsFlags = append(flags.Local.AsFlags, ltoCFlags...)
 		flags.Local.LdFlags = append(flags.Local.LdFlags, ltoCFlags...)
