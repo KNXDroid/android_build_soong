@@ -106,8 +106,6 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 	if ctx.isCfi() || ctx.isFuzzer() {
 		return flags
 	}
-	flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inline-threshold=3240")
-	flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inlinehint-threshold=1030")
 
 	//Polly + Polly DCE
 	flags.Local.LdFlags = append(flags.Local.LdFlags,
@@ -168,6 +166,11 @@ func (lto *lto) flags(ctx ModuleContext, flags Flags) Flags {
 		// performance.
 		if !Bool(lto.Properties.Lto_Instr100) {
 				ltoLdFlags = append(ltoLdFlags, "-Wl,-plugin-opt,-import-instr-limit=40")
+				flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inline-threshold=2240")
+				flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inlinehint-threshold=1030")
+		} else {
+			flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inline-threshold=7800")
+			flags.Local.LdFlags = append(flags.Local.LdFlags,"-Wl,-mllvm,-inlinehint-threshold=7500")
 		}
 
 		if !ctx.Config().IsEnvFalse("THINLTO_USE_MLGO") {
